@@ -1,34 +1,39 @@
 class Transfer
- attr_accessor :sender, :receiver, :amount, :status, :count
-    
-  def initialize(sender, receiver, amount)
+   attr_accessor :sender, :receiver, :amount, :status
+
+  def initialize(sender, receiver, amount, status="pending")
     @sender = sender
     @receiver = receiver
     @amount = amount
-    @status = "pending"
+    @status = status
   end
-  
+
   def valid?
-    @receiver.valid? && @sender.valid?
+    sender.valid? && receiver.valid?
   end
-  
+
   def execute_transaction
-    if @sender.balance > @amount
-      @balance = @balance-amount
-      @status == "completed"
+    if valid? && sender.balance > amount && self.status == "pending"
+      sender.withdrawal(self.amount)
+      receiver.deposit(self.amount)
+      self.status = "complete"
     else
-      @status == "rejected"
-       return "Transaction rejected. Please check your account balance."
+      self.status = "rejected"
+      "Transaction rejected. Please check your account balance."
     end
   end
-  
+
   def reverse_transfer
-    if @status == "complete"
-      @sender.deposit( @amount )
-      @receiver.deposit( @amount*-1 )
+    if valid? && receiver.balance > amount && self.status == "complete"
+      sender.deposit(self.amount)
+      receiver.withdrawal(self.amount)
+      self.status = "reversed"
     else
-      @status = "reversed"
+      self.status = "rejected"
+      "Transaction rejected. Please check your account balance."      
     end
   end
-  
+
+
+
 end
